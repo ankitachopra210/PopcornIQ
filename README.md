@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎬 CloudVault
+# 🎬 PopCornIQ
 
 ### A Modern Movie Discovery Platform
 
@@ -18,7 +18,7 @@ Discover trending movies, search titles, explore ratings, and manage your person
 
 # 📖 Overview
 
-CloudVault is a full-stack movie discovery application that enables users to browse trending movies, search for titles, and explore detailed movie information using the TMDB API.
+PopCornIQ is a full-stack movie discovery application that enables users to browse trending movies, search for titles, and explore detailed movie information using the TMDB API.
 
 The frontend is built with **React** and **Tailwind CSS**, while the backend is currently being rebuilt using **Node.js**, **Express.js**, and **MongoDB** to replace the original Appwrite backend. The goal of this project is to gain hands-on experience designing and developing a complete RESTful backend from scratch.
 
@@ -87,7 +87,7 @@ Planned features include:
 # 📂 Folder Structure
 
 ```
-CloudVault
+PopCornIQ
 │
 ├── public
 ├── src
@@ -118,13 +118,13 @@ CloudVault
 Clone the repository
 
 ```bash
-git clone https://github.com/ankitachopra210/CloudVault.git
+git clone https://github.com/ankitachopra210/PopCornIQ.git
 ```
 
 Move inside the project
 
 ```bash
-cd CloudVault
+cd PopCornIQ
 ```
 
 Install dependencies
