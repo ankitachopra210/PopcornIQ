@@ -68,7 +68,7 @@ Planned features include:
 - Tailwind CSS
 - React Hooks
 
-## Backend (Work in Progress)
+## Backend 
 
 - Node.js
 - Express.js
@@ -80,7 +80,7 @@ Planned features include:
 
 ## APIs
 
-- TMDB API
+- OMDB API
 
 ---
 
