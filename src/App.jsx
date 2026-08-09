@@ -1,3 +1,7 @@
+import { Routes, Route, Link } from 'react-router-dom'
+import Login from './pages/Login.jsx'
+import Signup from './pages/Signup.jsx'
+import { useAuth } from './context/AuthContext.jsx'
 import { useEffect, useState } from 'react'
 import Search from './components/Search.jsx'
 import MovieCardSkeleton from './components/MovieCardSkeleton.jsx'
@@ -14,7 +18,7 @@ const API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 const App = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('');
-
+const { user, logout } = useAuth();
   const [movieList, setMovieList] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -90,53 +94,75 @@ const fetchMovies = async (query = '') => {
   }, []);
 
   return (
-    <main>
-      <div className="pattern"/>
 
-      <div className="wrapper">
-        <header>
-          <img src="./hero.png" alt="Hero Banner" />
-          <h1>Find <span className="text-gradient">Movies</span> You'll Enjoy Without the Hassle</h1>
+  <Routes>
+    <Route path="/" element={
+      <main>
+        <div className="pattern"/>
 
-          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        </header>
+        <div className="wrapper">
+          <header>
+            <div className="flex justify-end gap-4 text-white mb-4">
+              {user ? (
+                <>
+                  <span>Hi, {user.username}</span>
+                  <button onClick={logout} className="underline">Log out</button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="underline">Log In</Link>
+                  <Link to="/signup" className="underline">Sign Up</Link>
+                </>
+              )}
+            </div>
 
-        {trendingMovies.length > 0 && (
-          <section className="trending">
-            <h2>Trending Movies</h2>
+            <img src="./hero.png" alt="Hero Banner" />
+            <h1>Find <span className="text-gradient">Movies</span> You'll Enjoy Without the Hassle</h1>
 
-            <ul>
-              {trendingMovies.map((movie, index) => (
-                <li key={movie._id}>
-                  <p>{index + 1}</p>
-                  <img src={movie.posterUrl} alt={movie.searchTerm} />
-                </li>
-              ))}
-            </ul>
+            <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          </header>
+
+          {trendingMovies.length > 0 && (
+            <section className="trending">
+              <h2>Trending Movies</h2>
+
+              <ul>
+                {trendingMovies.map((movie, index) => (
+                  <li key={movie._id}>
+                    <p>{index + 1}</p>
+                    <img src={movie.posterUrl || '/no-movie.png'} alt={movie.searchTerm} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <section className="all-movies">
+            <h2>All Movies</h2>
+
+            {isLoading ? (
+              <ul>
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <MovieCardSkeleton key={index} />
+                ))}
+              </ul>
+            ) : errorMessage ? (
+              <p className="text-red-500">{errorMessage}</p>
+            ) : (
+              <ul>
+                {movieList.map((movie) => (
+                  <MovieCard key={movie.id} movie={movie} />
+                ))}
+              </ul>
+            )}
           </section>
-        )}
+        </div>
+      </main>
+    } />
+    <Route path="/login" element={<Login />} />
+    <Route path="/signup" element={<Signup />} />
+  </Routes>
 
-        <section className="all-movies">
-          <h2>All Movies</h2>
-
-{isLoading ? (
-  <ul>
-    {Array.from({ length: 8 }).map((_, index) => (
-      <MovieCardSkeleton key={index} />
-    ))}
-  </ul>
-) : errorMessage ? (
-  <p className="text-red-500">{errorMessage}</p>
-) : (
-  <ul>
-    {movieList.map((movie) => (
-      <MovieCard key={movie.id} movie={movie} />
-    ))}
-  </ul>
-)}
-        </section>
-      </div>
-    </main>
   )
 }
 
