@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Search from './components/Search.jsx'
-import Spinner from './components/Spinner.jsx'
+import MovieCardSkeleton from './components/MovieCardSkeleton.jsx'
 import MovieCard from './components/MovieCard.jsx'
 import { useDebounce } from 'react-use'
 import { getTrendingMovies, trackSearch } from './services/api.js'
@@ -119,17 +119,21 @@ const fetchMovies = async (query = '') => {
         <section className="all-movies">
           <h2>All Movies</h2>
 
-          {isLoading ? (
-            <Spinner />
-          ) : errorMessage ? (
-            <p className="text-red-500">{errorMessage}</p>
-          ) : (
-            <ul>
-              {movieList.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
-              ))}
-            </ul>
-          )}
+{isLoading ? (
+  <ul>
+    {Array.from({ length: 8 }).map((_, index) => (
+      <MovieCardSkeleton key={index} />
+    ))}
+  </ul>
+) : errorMessage ? (
+  <p className="text-red-500">{errorMessage}</p>
+) : (
+  <ul>
+    {movieList.map((movie) => (
+      <MovieCard key={movie.id} movie={movie} />
+    ))}
+  </ul>
+)}
         </section>
       </div>
     </main>
