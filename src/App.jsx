@@ -3,19 +3,13 @@ import Search from './components/Search.jsx'
 import Spinner from './components/Spinner.jsx'
 import MovieCard from './components/MovieCard.jsx'
 import { useDebounce } from 'react-use'
-import { getTrendingMovies, updateSearchCount } from './appwrite.js'
+import { getTrendingMovies, trackSearch } from './services/api.js'
 
-const API_BASE_URL = 'https://api.themoviedb.org/3';
+const API_BASE_URL = 'https://www.omdbapi.com';
 
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+const API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
-const API_OPTIONS = {
-  method: 'GET',
-  headers: {
-    accept: 'application/json',
-    Authorization: `Bearer ${API_KEY}`
-  }
-}
+
 
 const App = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
@@ -31,42 +25,52 @@ const App = () => {
   // by waiting for the user to stop typing for 500ms
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm])
 
-  const fetchMovies = async (query = '') => {
-    setIsLoading(true);
-    setErrorMessage('');
+const fetchMovies = async (query = '') => {
+  setIsLoading(true);
+  setErrorMessage('');
 
-    try {
-      const endpoint = query
-        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
-        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+  try {
+    // OMDb has no "discover popular movies" endpoint, so we fall back
+    // to a fixed default search term when there's no query yet
+    const searchQuery = query || 'Avengers';
+    const endpoint = `${API_BASE_URL}/?apikey=${API_KEY}&s=${encodeURIComponent(searchQuery)}`;
 
-      const response = await fetch(endpoint, API_OPTIONS);
+    const response = await fetch(endpoint);
 
-      if(!response.ok) {
-        throw new Error('Failed to fetch movies');
-      }
-
-      const data = await response.json();
-
-      if(data.Response === 'False') {
-        setErrorMessage(data.Error || 'Failed to fetch movies');
-        setMovieList([]);
-        return;
-      }
-
-      setMovieList(data.results || []);
-
-      if(query && data.results.length > 0) {
-        await updateSearchCount(query, data.results[0]);
-      }
-    } catch (error) {
-      console.error(`Error fetching movies: ${error}`);
-      setErrorMessage('Error fetching movies. Please try again later.');
-    } finally {
-      setIsLoading(false);
+    if (!response.ok) {
+      throw new Error('Failed to fetch movies');
     }
-  }
 
+    const data = await response.json();
+
+    if (data.Response === 'False') {
+      setErrorMessage(data.Error || 'Failed to fetch movies');
+      setMovieList([]);
+      return;
+    }
+
+    // Normalize OMDb's field names to match what MovieCard expects
+    const normalizedMovies = data.Search.map((movie) => ({
+      id: movie.imdbID,
+      title: movie.Title,
+      poster_path: movie.Poster !== 'N/A' ? movie.Poster : null,
+      release_date: movie.Year,
+      vote_average: null,
+      original_language: null,
+    }));
+
+    setMovieList(normalizedMovies);
+
+    if (query && normalizedMovies.length > 0) {
+      await trackSearch(query, normalizedMovies[0]);
+    }
+  } catch (error) {
+    console.error(`Error fetching movies: ${error}`);
+    setErrorMessage('Error fetching movies. Please try again later.');
+  } finally {
+    setIsLoading(false);
+  }
+}
   const loadTrendingMovies = async () => {
     try {
       const movies = await getTrendingMovies();
@@ -103,9 +107,9 @@ const App = () => {
 
             <ul>
               {trendingMovies.map((movie, index) => (
-                <li key={movie.$id}>
+                <li key={movie._id}>
                   <p>{index + 1}</p>
-                  <img src={movie.poster_url} alt={movie.title} />
+                  <img src={movie.posterUrl} alt={movie.searchTerm} />
                 </li>
               ))}
             </ul>
